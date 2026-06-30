@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gina's Boutique 💕</title>
+<style>
+  :root{
+    --pink:#f7c9d6;          /* pinkydinkydoo */
+    --pink-deep:#e88aa3;
+    --pink-soft:#fdeef2;
+    --matcha:#bcd1a6;
+    --matcha-deep:#8aa86f;
+    --butter:#f6e6a8;
+    --cream:#fff9f4;
+    --beige:#f3e9df;
+    --ink:#3b2f33;
+    --ink-soft:#7a6c70;
+    --white:#ffffff;
+    --shadow:0 8px 24px rgba(180,120,140,.16);
+    --shadow-sm:0 3px 10px rgba(180,120,140,.12);
+    --radius:22px;
+    --radius-sm:14px;
+    --serif:'Georgia','Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;font-family:var(--sans);color:var(--ink);
+    background:linear-gradient(160deg,var(--pink-soft),var(--cream) 40%,var(--beige));
+    min-height:100vh;-webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  .hidden{display:none !important;}
+  .center{text-align:center;}
+
+  /* ---------- Login / Gate ---------- */
+  .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .gate-card{
+    background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:34px 28px;max-width:380px;width:100%;text-align:center;
+    border:1px solid rgba(232,138,163,.18);
+  }
+  .gate-card .logo{font-size:48px;margin-bottom:6px;}
+  .gate-card h1{font-size:28px;color:var(--pink-deep);}
+  .gate-card p.sub{color:var(--ink-soft);font-size:14px;margin:8px 0 22px;}
+  .field{text-align:left;margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase;}
+  .field input{
+    width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--beige);
+    font-size:15px;background:var(--cream);transition:border .2s;
+  }
+  .field input:focus{outline:none;border-color:var(--pink-deep);background:var(--white);}
+  .btn{
+    background:var(--pink-deep);color:var(--white);padding:13px 18px;border-radius:999px;
+    font-size:15px;font-weight:600;width:100%;box-shadow:var(--shadow-sm);transition:transform .12s,filter .2s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn:hover{filter:brightness(1.04);}
+  .btn.ghost{background:var(--white);color:var(--pink-deep);border:1.5px solid var(--pink);}
+  .btn.matcha{background:var(--matcha-deep);}
+  .btn.small{width:auto;padding:9px 16px;font-size:13px;}
+  .btn.tiny{width:auto;padding:6px 12px;font-size:12px;border-radius:999px;}
+  .linkbtn{background:none;color:var(--ink-soft);font-size:13px;text-decoration:underline;padding:8px;width:auto;margin-top:10px;}
+  .err{color:#c0455f;font-size:13px;min-height:18px;margin:4px 0;}
+
+  /* ---------- App shell ---------- */
+  #app{max-width:1100px;margin:0 auto;padding:0 0 120px;}
+  .topbar{
+    position:sticky;top:0;z-index:40;background:rgba(255,249,244,.92);backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(232,138,163,.15);padding:12px 16px;
+  }
+  .topbar-row{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
+  .brand{font-family:var(--serif);font-size:20px;color:var(--pink-deep);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;}
+  .brand .heart{display:inline-block;}
+  .spacer{flex:1;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--beige);
+    border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;box-shadow:var(--shadow-sm);white-space:nowrap;
+  }
+  .pill .ico{font-size:15px;}
+  .pill.credits{background:linear-gradient(120deg,var(--matcha),var(--matcha-deep));color:#23391a;border:none;}
+  .pill.points{background:linear-gradient(120deg,var(--butter),#eccb62);color:#5b4a14;border:none;}
+  .cart-btn{position:relative;background:var(--pink-deep);color:#fff;border-radius:999px;padding:8px 12px;font-size:14px;font-weight:600;box-shadow:var(--shadow-sm);}
+  .cart-badge{position:absolute;top:-6px;right:-6px;background:var(--ink);color:#fff;border-radius:999px;min-width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;}
+
+  .tier-row{max-width:1100px;margin:8px auto 0;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-soft);}
+  .tier-badge{background:var(--pink);color:#7a2f44;border-radius:999px;padding:3px 10px;font-weight:700;font-size:12px;}
+  .tier-bar{flex:1;height:7px;background:var(--beige);border-radius:999px;overflow:hidden;}
+  .tier-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--pink),var(--pink-deep));border-radius:999px;}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;max-width:1100px;margin:0 auto;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;background:var(--white);border:1px solid var(--beige);border-radius:999px;
+    padding:9px 16px;font-size:14px;font-weight:600;color:var(--ink-soft);box-shadow:var(--shadow-sm);transition:.18s;
+  }
+  .tab.active{background:var(--pink-deep);color:#fff;border-color:var(--pink-deep);}
+  .tab.admin{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .tab.secret{background:#2a2230;color:#f7c9d6;border-color:#2a2230;}
+
+  /* ---------- Content ---------- */
+  .view{padding:8px 16px;max-width:1100px;margin:0 auto;}
+  .view-head{margin:14px 4px 6px;}
+  .view-head h2{font-size:24px;color:var(--ink);}
+  .view-head p{color:var(--ink-soft);font-size:14px;margin:4px 0 0;}
+
+  .subnav{display:flex;gap:7px;flex-wrap:wrap;margin:12px 2px;}
+  .chip{background:var(--white);border:1px solid var(--beige);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--ink-soft);font-weight:600;}
+  .chip.active{background:var(--matcha);color:#23391a;border-color:var(--matcha);}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:6px;}
+  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr;}}
+  @media(min-width:880px){.grid{grid-template-columns:1fr 1fr 1fr;}}
+
+  .card{
+    background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);
+    padding:16px;display:flex;flex-direction:column;gap:9px;border:1px solid rgba(232,138,163,.1);position:relative;transition:transform .12s,box-shadow .2s;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+  .card.fav::after{content:"⭐";position:absolute;top:12px;right:14px;font-size:15px;}
+  .card h3{font-size:17px;line-height:1.25;padding-right:22px;}
+  .card .note{font-size:13px;color:var(--ink-soft);line-height:1.4;}
+  .card .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;}
+  .tag{font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;letter-spacing:.3px;}
+  .tag.price{background:var(--butter);color:#5b4a14;}
+  .tag.cat{background:var(--pink-soft);color:var(--pink-deep);}
+  .tag.cost{background:var(--matcha);color:#23391a;}
+  .card .add{margin-top:6px;background:var(--pink-deep);color:#fff;border-radius:999px;padding:10px;font-weight:600;font-size:14px;width:100%;}
+  .card .add.in{background:var(--matcha-deep);}
+  .card-actions{display:flex;gap:6px;margin-top:6px;}
+  .card-actions button{flex:1;font-size:12px;padding:7px;border-radius:999px;background:var(--cream);border:1px solid var(--beige);color:var(--ink-soft);font-weight:600;}
+
+  .empty{text-align:center;color:var(--ink-soft);padding:40px 16px;font-size:14px;}
+
+  /* ---------- Cart drawer ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(59,47,51,.4);z-index:60;display:flex;justify-content:flex-end;}
+  .drawer{background:var(--cream);width:min(420px,100%);height:100%;overflow-y:auto;padding:20px;box-shadow:-10px 0 40px rgba(0,0,0,.18);}
+  .drawer h2{font-size:22px;color:var(--pink-deep);margin-bottom:4px;}
+  .cart-item{display:flex;align-items:center;gap:10px;background:var(--white);border-radius:var(--radius-sm);padding:12px;margin-top:10px;box-shadow:var(--shadow-sm);}
+  .cart-item .ci-name{flex:1;font-size:14px;font-weight:600;}
+  .cart-item .ci-cost{font-size:13px;color:var(--matcha-deep);font-weight:700;}
+  .cart-item .ci-rm{background:none;color:#c0455f;font-size:18px;width:auto;padding:0 4px;}
+  .cart-total{display:flex;justify-content:space-between;align-items:center;margin:18px 0 6px;font-size:16px;font-weight:700;}
+  .cart-warn{background:#fde6ec;color:#a13351;border-radius:var(--radius-sm);padding:12px;font-size:13px;margin:10px 0;}
+
+  /* ---------- Modal ---------- */
+  .modal-wrap{position:fixed;inset:0;background:rgba(59,47,51,.45);z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;}
+  .modal{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal h2{font-size:22px;color:var(--pink-deep);margin-bottom:14px;}
+  .modal .field textarea{width:100%;padding:12px;border-radius:var(--radius-sm);border:1.5px solid var(--beige);font-size:14px;font-family:inherit;background:var(--cream);min-height:64px;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .modal-actions .btn{flex:1;}
+
+  /* ---------- Spinner ---------- */
+  .spin-stage{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:14px;}
+  .wheel-box{position:relative;width:280px;max-width:80vw;}
+  .wheel-pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:30px;z-index:5;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2));}
+  canvas#wheel{width:100%;height:auto;display:block;border-radius:50%;box-shadow:var(--shadow);}
+  .spin-result{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;text-align:center;max-width:420px;width:100%;border:2px solid var(--pink);}
+  .spin-result h3{font-size:22px;color:var(--pink-deep);}
+  .mood-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0;}
+
+  /* ---------- Sexy ---------- */
+  .spice-wrap{background:#2a2230;color:#f7e3ea;border-radius:var(--radius);padding:20px;margin-top:10px;}
+  .spice-wrap .slider-label{display:flex;justify-content:space-between;font-size:13px;color:#e8b8c8;margin-bottom:6px;}
+  input[type=range]{width:100%;accent-color:var(--pink-deep);height:30px;}
+  .spice-card{background:#372d3f;border:1px solid #4a3c54;color:#f7e3ea;}
+  .spice-card h3{color:#f7c9d6;}
+  .spice-card .note{color:#cdb6c9;}
+  .spice-dots{font-size:13px;letter-spacing:2px;}
+
+  /* ---------- We've been here ---------- */
+  .stars{font-size:20px;letter-spacing:2px;cursor:pointer;color:var(--pink-deep);}
+  .verdict-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .verdict{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--beige);background:var(--cream);color:var(--ink-soft);font-weight:600;}
+  .verdict.on-return{background:var(--matcha);color:#23391a;border-color:var(--matcha);}
+  .verdict.on-maybe{background:var(--butter);color:#5b4a14;border-color:var(--butter);}
+  .verdict.on-never{background:#fde6ec;color:#a13351;border-color:#f3c6d2;}
+
+  /* watchlist */
+  .wl-item{background:var(--white);border-radius:var(--radius-sm);padding:12px 14px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:10px;margin-top:9px;}
+  .wl-item .wl-name{flex:1;font-size:14px;font-weight:600;}
+  .wl-item.watched .wl-name{text-decoration:line-through;color:var(--ink-soft);}
+  .wl-item .wl-tag{font-size:11px;background:var(--pink-soft);color:var(--pink-deep);padding:3px 8px;border-radius:999px;font-weight:700;}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:13px 22px;border-radius:999px;font-size:14px;z-index:100;box-shadow:var(--shadow);animation:pop .3s;}
+  @keyframes pop{from{opacity:0;transform:transl(-50%,10px);}}
+  .fab-admin{position:fixed;bottom:20px;right:18px;z-index:50;background:var(--ink);color:#fff;border-radius:999px;width:auto;padding:11px 16px;font-size:13px;font-weight:600;box-shadow:var(--shadow);}
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
+
+  .section-label{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);font-weight:700;margin:18px 4px 6px;}
+  .reward-card{background:var(--white);border-radius:var(--radius-sm);padding:14px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px;margin-top:10px;}
+  .reward-card .rc-pts{background:var(--butter);color:#5b4a14;border-radius:999px;padding:5px 11px;font-weight:700;font-size:13px;white-space:nowrap;}
+  .reward-card .rc-name{flex:1;font-size:14px;font-weight:600;}
+  .add-inline{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .add-inline input{flex:1;min-width:120px;padding:11px;border-radius:var(--radius-sm);border:1.5px solid var(--beige);font-size:14px;background:var(--white);}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN GATE ============ -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div class="logo">🛍️💕</div>
+    <h1>Gina's Boutique</h1>
+    <p class="sub" id="gateSub">Your personal date & treat shop. Log in to your loyalty card 💳</p>
+
+    <div id="loginForm">
+      <div class="field">
+        <label>Username</label>
+        <input id="liUser" autocomplete="off" placeholder="your loyalty name">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="liPass" type="password" placeholder="••••••">
+      </div>
+      <div class="err" id="liErr"></div>
+      <button class="btn" onclick="doLogin()">Enter the boutique ✨</button>
+      <button class="linkbtn" onclick="showRegister()">New here? Create your loyalty card →</button>
+    </div>
+
+    <div id="registerForm" class="hidden">
+      <div class="field">
+        <label>Pick a username</label>
+        <input id="rgUser" autocomplete="off" placeholder="e.g. ginababy">
+      </div>
+      <div class="field">
+        <label>Pick a password</label>
+        <input id="rgPass" type="password" placeholder="something you'll remember">
+      </div>
+      <div class="err" id="rgErr"></div>
+      <button class="btn matcha" onclick="doRegister()">Create my card 🎀</button>
+      <button class="linkbtn" onclick="showLogin()">← Back to login</button>
+    </div>
+
+    <button class="linkbtn" onclick="adminPrompt()" style="margin-top:18px;opacity:.6">🔧 admin</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="brand" id="brand" onclick="brandTap()"><span class="heart">💕</span> <span id="brandName">Gina's Boutique</span></div>
+      <div class="spacer"></div>
+      <span class="pill" id="syncPill" title="Sync" style="padding:6px 9px">☁️</span>
+      <span class="pill credits"><span class="ico">💳</span><span id="creditPill">200</span></span>
+      <span class="pill points"><span class="ico">⭐</span><span id="pointPill">0</span></span>
+      <button class="cart-btn" onclick="openCart()">🛒<span class="cart-badge hidden" id="cartBadge">0</span></button>
+    </div>
+    <div class="tier-row">
+      <span class="tier-badge" id="tierBadge">Crush</span>
+      <div class="tier-bar"><i id="tierFill" style="width:0%"></i></div>
+      <span id="tierNext">to Sweetheart</span>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="view" id="view"></div>
+</div>
+
+<button class="fab-admin hidden" id="fabExitAdmin" onclick="exitAdmin()">Exit admin 🔧</button>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+/* =================================================================
+   DATA MODEL
+   ================================================================= */
+const STORE_KEY = 'ginaBoutique_v1';
+const ADMIN_PASS = '';   // intentionally blank in source — the real admin password lives only in the cloud row (settings.adminPass)
+const MONTHLY_CREDITS = 200;
+
+/* ---- CLOUD SYNC (Supabase: gina-boutique project) ---- */
+const SUPA_URL = 'https://mibnzckiwqxusxtercav.supabase.co';
+const SUPA_KEY = 'sb_publishable_nS4XjUL2IYImbFM8RT8sBQ_puL_8wE9';
+const SUPA_HEADERS = { apikey:SUPA_KEY, Authorization:'Bearer '+SUPA_KEY, 'Content-Type':'application/json' };
+const ROW_ID = 'shared';
+let lastRemoteUpdated = null;   // updated_at we last applied/pushed
+let lastLocalWrite = 0;         // ts of last local change (don't clobber active edits)
+let pushTimer = null;
+let syncOn = true;
+
+function nowMonth(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
+function uid(){ return 'i'+Math.random().toString(36).slice(2,9); }
+
+/* ---- SEED CONTENT ---- */
+function seed(){
+  const R = (name,sub,price,cost,fav,note)=>({id:uid(),name,sub,price,cost,fav:!!fav,note:note||''});
+  return {
+    settings:{ adminPass:ADMIN_PASS, monthlyCredits:MONTHLY_CREDITS, brandName:"Gina's Boutique" },
+    user:null,            // {username,password,points,creditsUsed,month}
+    cart:[],
+    history:[],           // {date, items:[{name}], credits, points}
+    visited:[],           // {id,name,rating,verdict,notes,date}
+    tiers:[
+      {min:0,name:'Crush 💗'},
+      {min:120,name:'Sweetheart 💖'},
+      {min:300,name:'Babe 👑'},
+      {min:600,name:'VIP Baby ✨'}
+    ],
+    rewards:[
+      {id:uid(),pts:80,name:'Breakfast in bed 🥞'},
+      {id:uid(),pts:120,name:'Surprise sweet treat (your pick) 🧁'},
+      {id:uid(),pts:200,name:'A full massage from Josué 💆‍♀️'},
+      {id:uid(),pts:300,name:'Spa / self-care day 🌸'},
+      {id:uid(),pts:450,name:'A surprise gift 🎁'},
+      {id:uid(),pts:600,name:'Pick anything you want, no budget 💸'}
+    ],
+    spinnerExtra:[],      // extra custom mood-spinner ideas
+    giftIdeas:[           // ADMIN ONLY - gift spinner for Gina
+      {id:uid(),name:'Flowers — wrapped in manila/pink paper, NEVER clear plastic 🌷'},
+      {id:uid(),name:'Yogen Fruz from Dubai (Brisas branch so it doesn\'t melt)'},
+      {id:uid(),name:'Cooking Mama pistachio donut + truffle fries'},
+      {id:uid(),name:'Saha blueberry cinnamon roll'},
+      {id:uid(),name:'Karmel carrot cake'},
+      {id:uid(),name:'A skincare treat'},
+      {id:uid(),name:'Matcha supplies (deslactosada + 2 splenda)'},
+      {id:uid(),name:'Charlie\'s Cream oreo/pistachio cheesecake'},
+      {id:uid(),name:'Capricho sweets (she brincs the quadruple)'},
+      {id:uid(),name:'Get-well-soon note with a small treat'}
+    ],
+    movies:[
+      'The Shawshank Redemption','The Godfather','Forrest Gump','Goodfellas','Pulp Fiction',
+      'Schindler\'s List','12 Angry Men','The Departed','Whiplash','Parasite','Fight Club',
+      'Se7en','Gladiator','The Pianist','City of God','Casablanca','The Wolf of Wall Street',
+      'Million Dollar Baby','Good Will Hunting','A Beautiful Mind','Dead Poets Society',
+      'The Intouchables','Amélie','La La Land','The Notebook','Little Women','Marriage Story',
+      'Call Me By Your Name','Before Sunrise','Roma','Hidden Figures','The Social Network',
+      'Catch Me If You Can','The Pursuit of Happyness','Slumdog Millionaire','No Country for Old Men',
+      'There Will Be Blood','1917','Ford v Ferrari','Knives Out','The Grand Budapest Hotel',
+      'Spotlight','Moonlight','Manchester by the Sea','Past Lives','Anatomy of a Fall',
+      'Oppenheimer','The Holdovers','Joker'
+    ].map(t=>({id:uid(),name:t,watched:false,rating:0})),
+    docs:[
+      {name:'My Octopus Teacher',tag:'Wildlife'},
+      {name:'Planet Earth II',tag:'Wildlife'},
+      {name:'Our Planet',tag:'Wildlife'},
+      {name:'Chimp Empire',tag:'Wildlife'},
+      {name:'Blackfish',tag:'Wildlife'},
+      {name:'The Social Dilemma',tag:'Psychology'},
+      {name:'The Mind, Explained',tag:'Psychology'},
+      {name:'Three Identical Strangers',tag:'Psychology'},
+      {name:'Heroin(e)',tag:'Current'},
+      {name:'The Pharmacist',tag:'Current'},
+      {name:'The Crime of the Century',tag:'Current'},
+      {name:'Free Solo',tag:'Society'},
+      {name:'13th',tag:'Society'},
+      {name:'Won\'t You Be My Neighbor?',tag:'Society'},
+      {name:'Icarus',tag:'Society'},
+      {name:'The Tinder Swindler',tag:'Society'},
+      {name:'Seaspiracy',tag:'Current'},
+      {name:'Johnny Harris (YouTube) — geopolitics & explainer docs',tag:'YouTube'},
+      {name:'Real Stories (YouTube) — full documentaries',tag:'YouTube'},
+      {name:'Vox / Kurzgesagt explainers (YouTube)',tag:'YouTube'}
+    ].map(d=>({id:uid(),name:d.name,tag:d.tag,watched:false,rating:0})),
+
+    /* ----- CATEGORY ITEMS ----- */
+    cats:{
+      restaurants:[
+        // Sweet treats (her wishlist - cheap, high delight)
+        R('Yogen Fruz — Dubai (Brisas)','Sweet treats','$',8,true,'Get the Brisas branch so it doesn\'t melt 🥹'),
+        R('Cooking Mama — pistachio donut','Sweet treats','$',9,true,''),
+        R('Cooking Mama — truffle fries','Sweet treats','$',10,true,'She\'d jump for joy 🍟'),
+        R('Cooking Mama — crookie','Sweet treats','$',9,false,''),
+        R('Saha — blueberry cinnamon roll','Sweet treats','$',9,true,'Blueberry cream cheese = she brincs'),
+        R('Chunk / Bistro Mkt — choco chip cookie','Sweet treats','$',7,false,''),
+        R('Foodbarn — French toast','Sweet treats','$',12,true,'She\'d jump twice'),
+        R('Nación Sushi — brownie','Sweet treats','$',8,false,''),
+        R('Capricho — any sweet','Sweet treats','$',9,true,'Quadruple jump 🤸‍♀️'),
+        R('Charlie\'s Cream — oreo/pistachio cheesecake','Sweet treats','$',11,false,''),
+        R('Karmel — carrot cake','Sweet treats','$',10,true,'"Me muero, me derrito, creo que lloro"'),
+        R('Farmhouse — açaí smoothie / bowl','Sweet treats','$',11,false,''),
+        R('Tru Fru','Sweet treats','$',6,false,''),
+        // Matcha
+        R('Mycuppa','Matcha 🍵','$',10,true,'#1 matcha'),
+        R('Sip','Matcha 🍵','$',10,false,''),
+        R('Sora','Matcha 🍵','$',10,false,''),
+        R('Saha','Matcha 🍵','$',11,true,''),
+        R('Momo','Matcha 🍵','$',10,false,''),
+        R('Wknd','Matcha 🍵','$',11,true,''),
+        // Brunch
+        R('WKND','Brunch','$$',28,true,''),
+        R('Saha','Brunch','$$',28,true,''),
+        R('Momo','Brunch','$$',26,false,''),
+        R('Lilas Deli','Brunch','$$',26,false,''),
+        R('The Warehouse','Brunch','$$',28,true,'"con olor a pan"'),
+        R('Kokoma','Brunch','$$',26,false,''),
+        R('Sisu','Brunch','$$',26,false,''),
+        R('Cooking Mama','Brunch','$$',28,true,''),
+        R('Mancora','Brunch','$$',26,false,''),
+        R('Bungla','Brunch','$$',26,true,''),
+        // Healthy
+        R('Farmhouse','Healthy','$$',26,true,''),
+        R('Foodbarn','Healthy','$$',26,true,''),
+        R('Avocat','Healthy','$$',24,false,'Gluten free'),
+        R('We Fresh Market','Healthy','$$',22,false,''),
+        // Nikkei
+        R('Lima','Nikkei','$$$',55,true,''),
+        R('Mai Mai','Nikkei','$$$',55,true,''),
+        R('Noa','Nikkei','$$$',52,false,''),
+        R('Itodo','Nikkei','$$$',55,true,''),
+        // Asian / Japanese
+        R('Calle Dragones','Asian / Japanese','$$$',50,true,''),
+        R('Peixcru','Asian / Japanese','$$$',50,true,''),
+        R('Makoto','Asian / Japanese','$$$',58,true,''),
+        R('Maguro','Asian / Japanese','$$$',50,false,''),
+        R('Miss Cho','Asian / Japanese','$$$',48,false,''),
+        R('Dim Sum 507','Asian / Japanese','$$',35,false,''),
+        // Steakhouse
+        R('Primitivo','Steakhouse','$$$',60,true,''),
+        R('Raza','Steakhouse','$$$',58,false,''),
+        R('Tomillo','Steakhouse','$$$',55,false,''),
+        R('Zielo','Steakhouse','$$$',55,false,''),
+        // Seafood
+        R('Market','Seafood','$$$',55,false,''),
+        R('La Tapa del Coco','Seafood','$$$',52,true,''),
+        R('Kobore','Seafood','$$$',50,false,''),
+        // Italian
+        R('Arrogante','Italian','$$$',52,true,''),
+        R('Filomena','Italian','$$',38,false,''),
+        R('Romero','Italian','$$$',50,false,''),
+        R('Casa Nostra','Italian','$$',38,false,''),
+        // Drinks / bars / rooftops
+        R('UMI','Drinks & Rooftops','$$',35,true,''),
+        R('Corrupto','Drinks & Rooftops','$$',32,true,''),
+        R('Vista Bahía','Drinks & Rooftops','$$',35,true,''),
+        R('La Bárbara — Casco','Drinks & Rooftops','$$',32,false,''),
+        R('Frecuencia','Drinks & Rooftops','$$',32,true,''),
+        R('Laele','Drinks & Rooftops','$$',32,true,''),
+        R('Osaka Toscana (rooftop)','Drinks & Rooftops','$$$',48,true,''),
+        R('Ammi — Sofitel (rooftop)','Drinks & Rooftops','$$$',48,true,''),
+        R('Primavera (rooftop)','Drinks & Rooftops','$$',35,false,''),
+        // Late night
+        R('Rey de la Empanada','Late night','$',6,false,'Late-night empanada run'),
+        R('El Prado','Late night','$$',24,false,'')
+      ],
+      home:[
+        R('Matcha + a documentary in bed','','$',8,false,''),
+        R('Cook a new recipe together','','$',18,false,''),
+        R('Bake cookies (recreate her Chunk faves)','','$',12,false,''),
+        R('Build-a-pizza night','','$',16,false,''),
+        R('Living-room floor picnic','','$',10,false,''),
+        R('At-home spa night (face masks)','','$',12,false,''),
+        R('Themed movie marathon','','$',5,false,''),
+        R('Board games + snacks','','$',8,false,''),
+        R('Paint & sip','','$$',22,false,''),
+        R('Balcony sunset + music','','Free',0,false,''),
+        R('Home photoshoot of each other','','Free',0,false,''),
+        R('DIY sushi night','','$$',24,false,''),
+        R('Candlelit dinner at home','','$$',26,false,''),
+        R('Kitchen karaoke / dance','','Free',0,false,'')
+      ],
+      outdoor:[
+        R('Beach day (pack our own food)','','$',12,false,''),
+        R('Parque Natural Metropolitano hike','','Free',0,false,''),
+        R('Cinta Costera sunset walk','','Free',0,false,''),
+        R('Amador Causeway bike/walk','','$',8,false,''),
+        R('Picnic in the park','','$',10,false,''),
+        R('Cerro Ancón sunset','','Free',0,false,''),
+        R('Cerro Azul view drive','','$',10,false,''),
+        R('Farmers / organic market morning','','$',12,false,''),
+        R('Plant shopping at a vivero','','$',12,false,'')
+      ],
+      panama:[
+        R('Casco Viejo wander + gelato','','$',10,false,''),
+        R('Panamá Viejo ruins','','$',8,false,''),
+        R('Biomuseo','Museum','$$',20,false,''),
+        R('MAC — Museo de Arte Contemporáneo','Art','$',8,false,''),
+        R('Mercado de Mariscos — ceviche','','$',7,false,''),
+        R('Metropolitan Natural Park trails','Outdoors','Free',0,false,''),
+        R('Causeway / Amador islands','','$',8,false,''),
+        R('Ancon Hill hike','Outdoors','Free',0,false,''),
+        R('Soberanía rainforest day','Outdoors','$$',25,false,''),
+        R('Gamboa rainforest / aerial tram','','$$$',55,false,''),
+        R('Miraflores Canal locks','','$$',20,false,''),
+        R('Art gallery hop in San Francisco','Art','Free',0,false,''),
+        R('Bookstore afternoon','','$',10,false,''),
+        R('Isla Taboga ferry day trip','Day trip','$$',35,false,'')
+      ],
+      budget:[
+        R('Matcha + a documentary in bed','','$',8,false,''),
+        R('Cook a new recipe together','','$',16,false,''),
+        R('Bake cookies together','','$',12,false,''),
+        R('Living-room floor picnic','','$',10,false,''),
+        R('At-home spa night','','$',12,false,''),
+        R('Themed movie marathon','','$',5,false,''),
+        R('Board games + a snack','','$',8,false,''),
+        R('Balcony sunset + music','','Free',0,false,''),
+        R('Home photoshoot of each other','','Free',0,false,''),
+        R('Stargazing from the roof','','Free',0,false,''),
+        R('Matcha latte taste-test at home','','$',8,false,''),
+        R('Puzzle night with treats','','$',10,false,''),
+        R('No-phones reading hour','','Free',0,false,''),
+        R('Kitchen karaoke / dance','','Free',0,false,''),
+        R('Cinta Costera sunset walk','','Free',0,false,''),
+        R('Casco Viejo wander + split gelato','','$',8,false,''),
+        R('Amador Causeway walk','','Free',0,false,''),
+        R('Coffee + pastry crawl (one each)','','$',12,false,''),
+        R('Metropolitano park hike','','Free',0,false,''),
+        R('Organic market morning','','$',12,false,''),
+        R('Window-shop + split one treat','','$',8,false,''),
+        R('Beach day, bring our own food','','$',12,false,''),
+        R('Mercado de Mariscos ceviche cup','','$',7,false,''),
+        R('Cerro Ancón sunset','','Free',0,false,''),
+        R('Bookstore afternoon','','$',8,false,''),
+        R('Ice cream + people-watching','','$',7,false,''),
+        R('Cerro Azul view drive','','$',10,false,''),
+        R('Free gallery visit','','Free',0,false,''),
+        R('Panamá Viejo walk','','$',8,false,''),
+        R('Causeway sunset photos','','Free',0,false,''),
+        R('Thrift / vintage shopping','','$',12,false,''),
+        R('Plant shopping at a vivero','','$',12,false,''),
+        R('Free museum / cultural night','','Free',0,false,''),
+        R('Surprise sweet-treat pickup','','$',9,false,'Yogen, Saha roll...'),
+        R('Split truffle fries (Cooking Mama)','','$',10,false,''),
+        R('Matcha date at Mycuppa','','$',10,false,''),
+        R('Açaí bowl at Farmhouse','','$',11,false,''),
+        R('Picnic with her Saha cinnamon roll','','$',12,false,''),
+        R('Sweet-treat-of-the-week pick','','$',9,false,''),
+        R('Sunrise coffee somewhere new','','$',8,false,''),
+        R('Late-night empanada run','','$',6,false,'Rey de la Empanada'),
+        R('Share a cheesecake at Charlie\'s','','$',12,false,''),
+        R('Bring her flowers (per her rules!)','','$',15,false,'Never clear plastic 😅'),
+        R('DIY sushi night at home','','$$',24,false,''),
+        R('Candlelit dinner at home','','$$',24,false,''),
+        R('Paint & sip at home','','$$',22,false,''),
+        R('Bake & decorate cupcakes','','$',12,false,''),
+        R('Drive + good playlist, no plan','','$',6,false,''),
+        R('Feed the ducks / park bench picnic','','$',6,false,''),
+        R('DIY at-home pizza night','','$',16,false,'')
+      ],
+      selfcare:[
+        R('Skincare night (full routine)','','$',8,false,''),
+        R('Gua sha / face massage','','Free',0,false,''),
+        R('Sheet mask + her show','','$',5,false,''),
+        R('Nap pass — do not disturb','','Free',0,false,''),
+        R('A massage from Josué','','Free',0,false,'💆‍♀️'),
+        R('Book a pro massage','','$$$',55,false,''),
+        R('Warm bubble bath','','$',6,false,''),
+        R('At-home manicure','','$',8,false,''),
+        R('At-home pedi / foot soak','','$',8,false,''),
+        R('Hair mask treatment','','$',9,false,''),
+        R('Body scrub / exfoliation','','$',9,false,''),
+        R('Aromatherapy + candles wind-down','','$',8,false,''),
+        R('Sleep-in / lazy morning pass','','Free',0,false,''),
+        R('Matcha + cozy wind-down','','$',8,false,''),
+        R('Gentle stretch / yoga','','Free',0,false,''),
+        R('Lymphatic drainage massage','','$$$',50,false,''),
+        R('Sauna / spa day','','$$$',60,false,''),
+        R('"Touch grass" nature walk','','Free',0,false,''),
+        R('Solo recharge time (Josué handles everything)','','Free',0,false,'')
+      ],
+      sexy:[]   // intentionally empty in source — the real "For Us" content lives only in the cloud row, not in this public file
+    }
+  };
+}
+function sx(name,spice){ return {id:uid(),name,spice,note:'',price:'',cost:0}; }
+
+/* =================================================================
+   STATE / PERSISTENCE
+   ================================================================= */
+let DB;
+function load(){
+  try{ DB = JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){ DB=null; }
+  if(!DB || !DB.cats){ DB = seed(); save(); }
+}
+function saveLocal(){ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }
+function save(){ saveLocal(); lastLocalWrite=Date.now(); schedulePush(); }
+
+function setSync(state){
+  const p=el('syncPill'); if(!p) return;
+  const map={synced:'☁️',saving:'⏳',offline:'📴',error:'⚠️'};
+  p.textContent=map[state]||'☁️';
+  p.title='Sync: '+state;
+}
+function schedulePush(){ if(!syncOn) return; clearTimeout(pushTimer); setSync('saving'); pushTimer=setTimeout(cloudPush,700); }
+async function cloudPush(){
+  if(!syncOn) return;
+  const updated=new Date().toISOString();
+  try{
+    const res=await fetch(SUPA_URL+'/rest/v1/app_state?on_conflict=id',{
+      method:'POST',
+      headers:{...SUPA_HEADERS,Prefer:'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({id:ROW_ID,data:DB,updated_at:updated})
+    });
+    if(res.ok){ lastRemoteUpdated=updated; setSync('synced'); }
+    else setSync('error');
+  }catch(e){ setSync('offline'); }
+}
+async function cloudPull(){
+  if(!syncOn) return null;
+  try{
+    const res=await fetch(SUPA_URL+'/rest/v1/app_state?id=eq.'+ROW_ID+'&select=data,updated_at',{headers:SUPA_HEADERS});
+    if(!res.ok) return null;
+    const rows=await res.json();
+    return rows.length?rows[0]:null;
+  }catch(e){ return null; }
+}
+function applyRemote(row){
+  if(!row||!row.data||!row.data.cats) return false;
+  if(row.updated_at===lastRemoteUpdated) return false;
+  DB=row.data; lastRemoteUpdated=row.updated_at; saveLocal(); setSync('synced');
+  return true;
+}
+function startPolling(){
+  setInterval(async()=>{
+    if(!syncOn) return;
+    // don't yank data away while actively editing
+    if(Date.now()-lastLocalWrite<3500) return;
+    if(el('modalRoot') && el('modalRoot').children.length) return;
+    const ae=document.activeElement;
+    if(ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA')) return;
+    const row=await cloudPull();
+    if(applyRemote(row)){
+      if(!el('app').classList.contains('hidden')){ ensureMonth(); renderTabs(); render(); }
+      else prefillGate();
+    }
+  },4000);
+}
+
+let ADMIN=false;
+let SECRET_UNLOCKED=false;
+let currentTab='restaurants';
+let subFilter='All';
+let spiceLevel=3;
+
+/* monthly reset of credits */
+function ensureMonth(){
+  if(!DB.user) return;
+  if(DB.user.month !== nowMonth()){
+    DB.user.month = nowMonth();
+    DB.user.creditsUsed = 0;
+    save();
+  }
+}
+function creditsLeft(){ return DB.settings.monthlyCredits - (DB.user?DB.user.creditsUsed:0); }
+
+/* =================================================================
+   LOGIN
+   ================================================================= */
+function showRegister(){ el('loginForm').classList.add('hidden'); el('registerForm').classList.remove('hidden'); }
+function showLogin(){ el('registerForm').classList.add('hidden'); el('loginForm').classList.remove('hidden'); }
+
+function doRegister(){
+  const u=el('rgUser').value.trim(), p=el('rgPass').value;
+  if(!u||!p){ el('rgErr').textContent='Pick a username and password 💕'; return; }
+  DB.user={username:u,password:p,points:0,creditsUsed:0,month:nowMonth()};
+  save(); enterApp();
+}
+function doLogin(){
+  const u=el('liUser').value.trim(), p=el('liPass').value;
+  if(!DB.user){ el('liErr').textContent='No card yet — tap "Create your loyalty card" below.'; return; }
+  if(u!==DB.user.username || p!==DB.user.password){ el('liErr').textContent='Hmm, that doesn\'t match your card 💔'; return; }
+  enterApp();
+}
+function adminPrompt(){
+  const p=prompt('Admin password:');
+  if(p===null) return;
+  if(DB.settings.adminPass && p===DB.settings.adminPass){ ADMIN=true; if(!DB.user){ DB.user={username:'admin',points:0,creditsUsed:0,month:nowMonth()}; save(); } enterApp(); }
+  else alert('Nope.');
+}
+function enterApp(){
+  ensureMonth();
+  el('gate').classList.add('hidden');
+  el('app').classList.remove('hidden');
+  el('fabExitAdmin').classList.toggle('hidden',!ADMIN);
+  renderTabs(); render();
+}
+function exitAdmin(){ ADMIN=false; el('fabExitAdmin').classList.add('hidden'); renderTabs(); render(); }
+
+/* =================================================================
+   TABS
+   ================================================================= */
+const TABS=[
+  {id:'restaurants',label:'🍽️ Food & Spots'},
+  {id:'home',label:'🏠 At Home'},
+  {id:'outdoor',label:'🌳 Outdoor'},
+  {id:'panama',label:'🇵🇦 Panamá'},
+  {id:'budget',label:'💸 Budget Dates'},
+  {id:'selfcare',label:'🧖‍♀️ Self-Care'},
+  {id:'spinner',label:'🎡 Spin Together'},
+  {id:'watchlist',label:'🎬 Watchlist'},
+  {id:'visited',label:'📍 Been Here'},
+  {id:'rewards',label:'🎁 Rewards'}
+];
+function renderTabs(){
+  const t=el('tabs'); t.innerHTML='';
+  TABS.forEach(tb=>{
+    const b=document.createElement('button');
+    b.className='tab'+(currentTab===tb.id?' active':'');
+    b.textContent=tb.label;
+    b.onclick=()=>{currentTab=tb.id;subFilter='All';renderTabs();render();window.scrollTo(0,0);};
+    t.appendChild(b);
+  });
+  if(SECRET_UNLOCKED){
+    const s=document.createElement('button');
+    s.className='tab secret'+(currentTab==='sexy'?' active':'');
+    s.textContent='🔒 For Us';
+    s.onclick=()=>{currentTab='sexy';renderTabs();render();window.scrollTo(0,0);};
+    t.appendChild(s);
+  }
+  if(ADMIN){
+    const a=document.createElement('button');
+    a.className='tab admin'+(currentTab==='admin'?' active':'');
+    a.textContent='🔧 Admin';
+    a.onclick=()=>{currentTab='admin';renderTabs();render();window.scrollTo(0,0);};
+    t.appendChild(a);
+  }
+}
+
+/* =================================================================
+   HEADER PILLS
+   ================================================================= */
+function refreshHeader(){
+  el('brandName').textContent=DB.settings.brandName;
+  el('creditPill').textContent=creditsLeft();
+  el('pointPill').textContent=DB.user?DB.user.points:0;
+  el('cartBadge').textContent=DB.cart.length;
+  el('cartBadge').classList.toggle('hidden',DB.cart.length===0);
+  // tier
+  const pts=DB.user?DB.user.points:0;
+  let cur=DB.tiers[0], next=null;
+  for(let i=0;i<DB.tiers.length;i++){ if(pts>=DB.tiers[i].min){cur=DB.tiers[i]; next=DB.tiers[i+1]||null;} }
+  el('tierBadge').textContent=cur.name;
+  if(next){
+    const span=next.min-cur.min, prog=pts-cur.min;
+    el('tierFill').style.width=Math.min(100,Math.round(prog/span*100))+'%';
+    el('tierNext').textContent=(next.min-pts)+' pts to '+next.name;
+  }else{
+    el('tierFill').style.width='100%';
+    el('tierNext').textContent='Top tier 👑';
+  }
+}
+
+/* =================================================================
+   RENDER ROUTER
+   ================================================================= */
+function render(){
+  refreshHeader();
+  const v=el('view');
+  if(currentTab==='spinner') return renderSpinner(v);
+  if(currentTab==='watchlist') return renderWatchlist(v);
+  if(currentTab==='visited') return renderVisited(v);
+  if(currentTab==='rewards') return renderRewards(v);
+  if(currentTab==='sexy') return renderSexy(v);
+  if(currentTab==='admin') return renderAdmin(v);
+  return renderCategory(v,currentTab);
+}
+
+const CAT_META={
+  restaurants:{title:'Food, Treats & Spots',sub:'All of Gina\'s favorites — straight from her own list 💌'},
+  home:{title:'At-Home Activities',sub:'Cozy nights in 🏠'},
+  outdoor:{title:'Outdoor Activities',sub:'Fresh air & sunshine ☀️'},
+  panama:{title:'Around Panamá',sub:'Parks, museums, galleries & day trips'},
+  budget:{title:'Budget Dates',sub:'Big love, small spend 💸'},
+  selfcare:{title:'Self-Care for Gina',sub:'You deserve all of it 🌸'}
+};
+
+function inCart(id){ return DB.cart.some(c=>c.id===id); }
+function vetoed(name){ return DB.visited.some(v=>v.name===name && v.verdict==='never'); }
+
+function renderCategory(v,cat){
+  const meta=CAT_META[cat];
+  const items=DB.cats[cat].filter(it=>ADMIN || !vetoed(it.name));
+  const subs=['All',...Array.from(new Set(DB.cats[cat].map(i=>i.sub).filter(Boolean)))];
+  let html=`<div class="view-head"><h2>${meta.title}</h2><p>${meta.sub}</p></div>`;
+  if(subs.length>1){
+    html+=`<div class="subnav">`+subs.map(s=>`<button class="chip ${subFilter===s?'active':''}" onclick="setSub('${esc(s)}')">${s}</button>`).join('')+`</div>`;
+  }
+  const shown=items.filter(it=>subFilter==='All'||it.sub===subFilter);
+  if(ADMIN){
+    html+=`<div class="add-inline">
+      <input id="newItemName" placeholder="Add new item name...">
+      <input id="newItemCost" type="number" placeholder="cost" style="max-width:90px">
+      <button class="btn small" onclick="adminAddItem('${cat}')">+ Add</button></div>`;
+  }
+  html+=`<div class="grid">`;
+  if(!shown.length) html+=`</div><div class="empty">Nothing here yet.</div>`;
+  else { shown.forEach(it=>{ html+=cardHTML(it,cat); }); html+=`</div>`; }
+  v.innerHTML=html;
+}
+function setSub(s){ subFilter=s; render(); }
+
+function cardHTML(it,cat){
+  const priceTag = it.price? `<span class="tag price">${it.price}</span>`:'';
+  const subTag = it.sub? `<span class="tag cat">${it.sub}</span>`:'';
+  const costTag = it.cost>0? `<span class="tag cost">${it.cost} cr</span>`:`<span class="tag cost">free</span>`;
+  const veto = vetoed(it.name)? `<span class="tag" style="background:#fde6ec;color:#a13351">skipped</span>`:'';
+  let actions = ADMIN
+    ? `<div class="card-actions"><button onclick="adminEditItem('${cat}','${it.id}')">✏️ Edit</button><button onclick="adminDelItem('${cat}','${it.id}')">🗑️ Delete</button></div>`
+    : `<button class="add ${inCart(it.id)?'in':''}" onclick="toggleCart('${cat}','${it.id}')">${inCart(it.id)?'✓ In cart':'Add to cart 🛒'}</button>`;
+  return `<div class="card ${it.fav?'fav':''}">
+    <h3>${it.name}</h3>
+    ${it.note?`<div class="note">${it.note}</div>`:''}
+    <div class="meta">${priceTag}${subTag}${costTag}${veto}</div>
+    ${actions}
+  </div>`;
+}
+
+/* =================================================================
+   CART
+   ================================================================= */
+function findItem(cat,id){ return DB.cats[cat].find(i=>i.id===id); }
+function toggleCart(cat,id){
+  if(inCart(id)){ DB.cart=DB.cart.filter(c=>c.id!==id); }
+  else{ const it=findItem(cat,id); DB.cart.push({id,name:it.name,cost:it.cost||0,cat}); }
+  save(); render();
+}
+function openCart(){
+  const total=DB.cart.reduce((s,c)=>s+c.cost,0);
+  const left=creditsLeft();
+  const over=total>left;
+  let items=DB.cart.length? DB.cart.map(c=>`<div class="cart-item"><span class="ci-name">${c.name}</span><span class="ci-cost">${c.cost} cr</span><button class="ci-rm" onclick="rmCart('${c.id}')">×</button></div>`).join('')
+    : `<div class="empty">Your cart is empty. Go pick some treats 💕</div>`;
+  let warn = over? `<div class="cart-warn">⚠️ This is ${total-left} credits over your ${left} left this month. Maybe save one for later? 🥹</div>`:'';
+  const pts = DB.cart.length*10;
+  const html=`<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="drawer">
+      <button class="linkbtn" style="float:right" onclick="closeModal()">close ✕</button>
+      <h2>Your Cart 🛒</h2>
+      <p style="color:var(--ink-soft);font-size:13px;margin:0 0 8px">${left} credits left this month · earn +${pts} pts</p>
+      ${items}
+      <div class="cart-total"><span>Total</span><span style="color:var(--matcha-deep)">${total} cr</span></div>
+      ${warn}
+      <button class="btn ${over?'':''}" ${over?'style="background:#c98aa0"':''} onclick="checkout()" ${DB.cart.length?'':'disabled style=\"opacity:.5\"'}>${over?'Check out anyway 💸':'Check out ✨'}</button>
+    </div></div>`;
+  el('modalRoot').innerHTML=html;
+}
+function rmCart(id){ DB.cart=DB.cart.filter(c=>c.id!==id); save(); openCart(); render(); }
+function checkout(){
+  if(!DB.cart.length) return;
+  const total=DB.cart.reduce((s,c)=>s+c.cost,0);
+  const pts=DB.cart.length*10;
+  DB.user.creditsUsed += total;
+  DB.user.points += pts;
+  DB.history.unshift({date:new Date().toLocaleDateString(),items:DB.cart.map(c=>c.name),credits:total,points:pts});
+  DB.cart=[];
+  save(); closeModal(); render();
+  confetti();
+  toast(`Enjoy, babe! +${pts} pts ✨`);
+}
+
+/* =================================================================
+   SPINNER (shared mood spinner)
+   ================================================================= */
+let spinPool=['restaurants','home','outdoor','budget'];
+let spinMood={budget:'any',setting:'any'};
+function renderSpinner(v){
+  const sources=[
+    {id:'restaurants',label:'🍽️ Food'},
+    {id:'home',label:'🏠 Home'},
+    {id:'outdoor',label:'🌳 Outdoor'},
+    {id:'panama',label:'🇵🇦 Panamá'},
+    {id:'budget',label:'💸 Budget'},
+    {id:'selfcare',label:'🧖‍♀️ Self-care'}
+  ];
+  let html=`<div class="view-head"><h2>Spin Together 🎡</h2><p>Set your mood, spin, let fate pick the date.</p></div>`;
+  html+=`<div class="section-label">Pull ideas from</div><div class="subnav">`+
+    sources.map(s=>`<button class="chip ${spinPool.includes(s.id)?'active':''}" onclick="togglePool('${s.id}')">${s.label}</button>`).join('')+`</div>`;
+  html+=`<div class="section-label">Mood</div><div class="subnav">
+      ${moodChip('budget','any','Any budget')}
+      ${moodChip('budget','low','Cheap / free 💸')}
+      ${moodChip('setting','any','Anywhere')}
+      ${moodChip('setting','home','Stay in 🏠')}
+      ${moodChip('setting','out','Go out 🚗')}
+    </div>`;
+  html+=`<div class="spin-stage">
+      <div class="wheel-box"><div class="wheel-pointer">▼</div><canvas id="wheel" width="300" height="300"></canvas></div>
+      <button class="btn" style="max-width:240px" onclick="spin()">Spin the wheel 🎡</button>
+      <div id="spinResult"></div>
+    </div>`;
+  if(ADMIN){
+    html+=`<div class="section-label">Admin: add a custom spinner idea</div>
+      <div class="add-inline"><input id="spinAdd" placeholder="custom idea..."><button class="btn small" onclick="addSpin()">+ Add</button></div>`;
+    if(DB.spinnerExtra.length) html+='<div class="subnav">'+DB.spinnerExtra.map((s,i)=>`<button class="chip" onclick="rmSpin(${i})">${s} ✕</button>`).join('')+'</div>';
+  }
+  v.innerHTML=html;
+  drawWheel();
+}
+function moodChip(k,val,label){ return `<button class="chip ${spinMood[k]===val?'active':''}" onclick="setMood('${k}','${val}')">${label}</button>`; }
+function setMood(k,v){ spinMood[k]=v; render(); }
+function togglePool(id){ spinPool.includes(id)? spinPool=spinPool.filter(x=>x!==id) : spinPool.push(id); render(); }
+function addSpin(){ const x=el('spinAdd').value.trim(); if(x){DB.spinnerExtra.push(x);save();render();} }
+function rmSpin(i){ DB.spinnerExtra.splice(i,1);save();render(); }
+
+function spinCandidates(){
+  let pool=[];
+  spinPool.forEach(cat=>{
+    DB.cats[cat]?.forEach(it=>{
+      if(vetoed(it.name)) return;
+      if(spinMood.budget==='low' && it.cost>15) return;
+      if(spinMood.setting==='home' && !['home','selfcare'].includes(cat)) return;
+      if(spinMood.setting==='out' && ['home','selfcare'].includes(cat)) return;
+      pool.push(it.name);
+    });
+  });
+  DB.spinnerExtra.forEach(s=>pool.push(s));
+  return pool;
+}
+let wheelAngle=0, spinning=false;
+function drawWheel(seg){
+  const c=el('wheel'); if(!c) return; const ctx=c.getContext('2d');
+  const cx=150,cy=150,r=145;
+  const colors=['#f7c9d6','#bcd1a6','#f6e6a8','#e88aa3','#d9c2e8','#a6d1cf'];
+  const n=8;
+  ctx.clearRect(0,0,300,300);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(wheelAngle);
+  for(let i=0;i<n;i++){
+    ctx.beginPath();ctx.moveTo(0,0);
+    ctx.arc(0,0,r,(i/n)*2*Math.PI,((i+1)/n)*2*Math.PI);
+    ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();
+  }
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,26,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#e88aa3';ctx.font='20px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('💕',0,0);
+  ctx.restore();
+}
+function spin(){
+  if(spinning) return;
+  const cands=spinCandidates();
+  if(!cands.length){ el('spinResult').innerHTML=`<div class="spin-result"><p>No matches for that mood — loosen a filter 🥲</p></div>`; return; }
+  spinning=true;
+  const pick=cands[Math.floor(Math.random()*cands.length)];
+  const target=wheelAngle + Math.PI*2*6 + Math.random()*Math.PI*2;
+  const start=wheelAngle, t0=performance.now(), dur=2600;
+  function frame(t){
+    const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+    wheelAngle=start+(target-start)*e; drawWheel();
+    if(p<1) requestAnimationFrame(frame);
+    else{ spinning=false;
+      el('spinResult').innerHTML=`<div class="spin-result"><p style="color:var(--ink-soft);font-size:13px;margin:0">Tonight you're doing...</p><h3>${pick}</h3><button class="btn small" style="margin-top:10px" onclick="spin()">Spin again 🔄</button></div>`;
+      confetti();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* =================================================================
+   WATCHLIST
+   ================================================================= */
+let wlTab='movies';
+function renderWatchlist(v){
+  let html=`<div class="view-head"><h2>Watchlist 🎬</h2><p>Movies & documentaries for you two.</p></div>`;
+  html+=`<div class="subnav">
+    <button class="chip ${wlTab==='movies'?'active':''}" onclick="setWl('movies')">🎬 Movies</button>
+    <button class="chip ${wlTab==='docs'?'active':''}" onclick="setWl('docs')">🎞️ Documentaries</button>
+    </div>`;
+  const list=DB[wlTab];
+  html+=`<div class="add-inline"><input id="wlNew" placeholder="Add a ${wlTab==='movies'?'movie':'documentary'}...">`+
+    (wlTab==='docs'?`<input id="wlTag" placeholder="tag (Wildlife...)" style="max-width:130px">`:'')+
+    `<button class="btn small" onclick="addWl()">+ Add</button></div>`;
+  const unseen=list.filter(x=>!x.watched), seen=list.filter(x=>x.watched);
+  html+=unseen.map(wlRow).join('');
+  if(seen.length){ html+=`<div class="section-label">Watched ✓</div>`+seen.map(wlRow).join(''); }
+  if(!list.length) html+=`<div class="empty">Empty — add your first pick above.</div>`;
+  v.innerHTML=html;
+}
+function wlRow(x){
+  return `<div class="wl-item ${x.watched?'watched':''}">
+    <input type="checkbox" ${x.watched?'checked':''} onchange="toggleWatched('${x.id}')" style="width:20px;height:20px;accent-color:#8aa86f">
+    <span class="wl-name">${x.name}</span>
+    ${x.tag?`<span class="wl-tag">${x.tag}</span>`:''}
+    <button class="ci-rm" style="color:#c0455f;background:none" onclick="rmWl('${x.id}')">×</button>
+  </div>`;
+}
+function setWl(t){ wlTab=t; render(); }
+function toggleWatched(id){ const x=DB[wlTab].find(i=>i.id===id); x.watched=!x.watched; if(x.watched){DB.user.points+=15;toast('+15 pts for movie night 🍿');} save(); render(); }
+function addWl(){ const n=el('wlNew').value.trim(); if(!n)return; const tag=wlTab==='docs'?(el('wlTag').value.trim()||'Doc'):''; DB[wlTab].unshift({id:uid(),name:n,tag,watched:false,rating:0}); save(); render(); }
+function rmWl(id){ DB[wlTab]=DB[wlTab].filter(i=>i.id!==id); save(); render(); }
+
+/* =================================================================
+   WE'VE BEEN HERE
+   ================================================================= */
+function renderVisited(v){
+  let html=`<div class="view-head"><h2>We've Been Here 📍</h2><p>Rate it, decide if it comes back around. "Don't recommend" hides it from picks.</p></div>`;
+  html+=`<div class="add-inline"><input id="visNew" placeholder="Where did you two go?"><button class="btn small" onclick="addVisited()">+ Log it</button></div>`;
+  if(!DB.visited.length){ html+=`<div class="empty">No check-ins yet. Log your first outing 💕</div>`; v.innerHTML=html; return; }
+  DB.visited.forEach(it=>{
+    html+=`<div class="card">
+      <h3>${it.name}</h3>
+      <div class="note">${it.date}</div>
+      <div class="stars" data-id="${it.id}">${[1,2,3,4,5].map(n=>`<span onclick="rateVisited('${it.id}',${n})">${n<=it.rating?'★':'☆'}</span>`).join('')}</div>
+      <div class="verdict-row">
+        <button class="verdict ${it.verdict==='return'?'on-return':''}" onclick="setVerdict('${it.id}','return')">↩️ Would return</button>
+        <button class="verdict ${it.verdict==='maybe'?'on-maybe':''}" onclick="setVerdict('${it.id}','maybe')">🤔 Maybe</button>
+        <button class="verdict ${it.verdict==='never'?'on-never':''}" onclick="setVerdict('${it.id}','never')">🚫 Don't recommend</button>
+      </div>
+      <input class="note-input" placeholder="notes..." value="${esc(it.notes||'')}" onchange="visNote('${it.id}',this.value)" style="padding:9px;border-radius:12px;border:1.5px solid var(--beige);font-size:13px;background:var(--cream)">
+      <button class="card-actions" style="all:unset;color:#c0455f;font-size:12px;cursor:pointer;margin-top:4px" onclick="rmVisited('${it.id}')">remove</button>
+    </div>`;
+  });
+  v.innerHTML=html;
+}
+function addVisited(){ const n=el('visNew').value.trim(); if(!n)return; DB.visited.unshift({id:uid(),name:n,rating:0,verdict:'',notes:'',date:new Date().toLocaleDateString()}); DB.user.points+=20; save(); toast('+20 pts for the memory 📸'); render(); }
+function rateVisited(id,n){ const it=DB.visited.find(v=>v.id===id); it.rating=n; save(); render(); }
+function setVerdict(id,v){ const it=DB.visited.find(x=>x.id===id); it.verdict= it.verdict===v?'':v; save(); render(); }
+function visNote(id,val){ const it=DB.visited.find(v=>v.id===id); it.notes=val; save(); }
+function rmVisited(id){ DB.visited=DB.visited.filter(v=>v.id!==id); save(); render(); }
+
+/* =================================================================
+   REWARDS
+   ================================================================= */
+function renderRewards(v){
+  const pts=DB.user?DB.user.points:0;
+  let html=`<div class="view-head"><h2>Rewards 🎁</h2><p>You have <b>${pts} pts</b>. Redeem your love-loyalty perks.</p></div>`;
+  // history summary
+  const spent=DB.user?DB.user.creditsUsed:0;
+  html+=`<div class="reward-card"><span class="rc-pts">This month</span><span class="rc-name">${spent} / ${DB.settings.monthlyCredits} credits used · ${creditsLeft()} left</span></div>`;
+  html+=`<div class="section-label">Redeem</div>`;
+  DB.rewards.forEach(r=>{
+    const can=pts>=r.pts;
+    html+=`<div class="reward-card">
+      <span class="rc-pts">${r.pts} pts</span>
+      <span class="rc-name">${r.name}</span>
+      <button class="btn tiny" ${can?'':'style="opacity:.4"'} onclick="redeem('${r.id}')">${can?'Redeem':'Locked'}</button>
+      ${ADMIN?`<button class="ci-rm" style="color:#c0455f;background:none" onclick="rmReward('${r.id}')">×</button>`:''}
+    </div>`;
+  });
+  if(ADMIN){
+    html+=`<div class="add-inline"><input id="rwName" placeholder="reward..."><input id="rwPts" type="number" placeholder="pts" style="max-width:90px"><button class="btn small" onclick="addReward()">+ Add</button></div>`;
+  }
+  if(DB.history.length){
+    html+=`<div class="section-label">Recent history</div>`;
+    DB.history.slice(0,12).forEach(h=>{
+      html+=`<div class="reward-card"><span class="rc-pts">${h.date}</span><span class="rc-name">${h.items.join(', ')}</span><span style="color:var(--matcha-deep);font-weight:700">${h.credits} cr</span></div>`;
+    });
+  }
+  v.innerHTML=html;
+}
+function redeem(id){
+  const r=DB.rewards.find(x=>x.id===id);
+  if(DB.user.points<r.pts){ toast('Not enough points yet 🥲'); return; }
+  if(!confirm(`Redeem "${r.name}" for ${r.pts} pts?`)) return;
+  DB.user.points-=r.pts; save();
+  confetti(); toast(`Redeemed: ${r.name} 🎉`); render();
+}
+function addReward(){ const n=el('rwName').value.trim(),p=parseInt(el('rwPts').value)||50; if(n){DB.rewards.push({id:uid(),pts:p,name:n});DB.rewards.sort((a,b)=>a.pts-b.pts);save();render();} }
+function rmReward(id){ DB.rewards=DB.rewards.filter(r=>r.id!==id); save(); render(); }
+
+/* =================================================================
+   SEXY
+   ================================================================= */
+function renderSexy(v){
+  const labels=['','😌 Sweet','😏 Flirty','🔥 Spicy','🌶️ Hot','💋 Explicit'];
+  let html=`<div class="view-head"><h2>For Us 🔒</h2><p>Slide for the mood. Everything here is just you two.</p></div>`;
+  html+=`<div class="spice-wrap">
+      <div class="slider-label"><span>😌 Playful</span><span>Up to ${labels[spiceLevel]}</span><span>💋 Explicit</span></div>
+      <input type="range" min="1" max="5" value="${spiceLevel}" oninput="setSpice(this.value)">
+    </div>`;
+  if(ADMIN){
+    html+=`<div class="add-inline"><input id="sxName" placeholder="add idea..."><input id="sxLvl" type="number" min="1" max="5" value="3" style="max-width:70px"><button class="btn small" onclick="addSexy()">+ Add</button></div>`;
+  }
+  const items=DB.cats.sexy.filter(i=>i.spice<=spiceLevel).sort((a,b)=>a.spice-b.spice);
+  html+=`<div class="grid">`;
+  items.forEach(it=>{
+    html+=`<div class="card spice-card">
+      <h3>${it.name}</h3>
+      <div class="meta"><span class="spice-dots">${'🌶️'.repeat(it.spice)}</span></div>
+      ${ADMIN?`<div class="card-actions"><button onclick="rmSexy('${it.id}')">🗑️ Delete</button></div>`:`<button class="add" onclick="pickSexy('${esc(it.name)}')">Pick this 💋</button>`}
+    </div>`;
+  });
+  html+=`</div>`;
+  v.innerHTML=html;
+}
+function setSpice(v){ spiceLevel=+v; render(); }
+function pickSexy(name){ confetti(); toast('Tonight: '+name+' 💋'); }
+function addSexy(){ const n=el('sxName').value.trim(),l=Math.min(5,Math.max(1,parseInt(el('sxLvl').value)||3)); if(n){DB.cats.sexy.push(sx(n,l));save();render();} }
+function rmSexy(id){ DB.cats.sexy=DB.cats.sexy.filter(i=>i.id!==id); save(); render(); }
+
+/* =================================================================
+   ADMIN PANEL
+   ================================================================= */
+function renderAdmin(v){
+  let html=`<div class="view-head"><h2>Admin 🔧</h2><p>For Josué's eyes only. Manage the boutique.</p></div>`;
+  // gift spinner
+  html+=`<div class="section-label">🎁 Gift Spinner (what to get Gina)</div>
+    <div class="spin-stage">
+      <div class="wheel-box"><div class="wheel-pointer">▼</div><canvas id="wheel" width="300" height="300"></canvas></div>
+      <button class="btn" style="max-width:240px" onclick="spinGift()">Spin for a gift idea 🎁</button>
+      <div id="giftResult"></div>
+    </div>
+    <div class="add-inline"><input id="giftAdd" placeholder="add gift idea..."><button class="btn small" onclick="addGift()">+ Add</button></div>`;
+  html+=`<div class="subnav">`+DB.giftIdeas.map(g=>`<button class="chip" onclick="rmGift('${g.id}')">${g.name} ✕</button>`).join('')+`</div>`;
+
+  // settings
+  html+=`<div class="section-label">⚙️ Settings</div>
+    <div class="reward-card"><span class="rc-name">Monthly credit budget</span>
+      <input type="number" value="${DB.settings.monthlyCredits}" onchange="setBudget(this.value)" style="max-width:90px;padding:8px;border-radius:10px;border:1.5px solid var(--beige)"></div>
+    <div class="reward-card"><span class="rc-name">Boutique name</span>
+      <input value="${esc(DB.settings.brandName)}" onchange="setBrand(this.value)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--beige)"></div>
+    <div class="reward-card"><span class="rc-name">Gina's credits used this month</span>
+      <button class="btn tiny" onclick="resetMonth()">Reset to 0</button></div>`;
+
+  // quick edit hint
+  html+=`<div class="section-label">✏️ Edit items</div>
+    <p style="color:var(--ink-soft);font-size:13px;margin:4px;">Open any category tab while in admin to add / edit / delete its items. Same for Watchlist, Rewards, Spinner and the For Us tab.</p>`;
+
+  // danger
+  html+=`<div class="section-label">⚠️ Data</div>
+    <div class="add-inline">
+      <button class="btn small ghost" onclick="exportData()">⬇️ Export backup</button>
+      <button class="btn small ghost" onclick="document.getElementById('impFile').click()">⬆️ Import backup</button>
+      <button class="btn small" style="background:#c0455f" onclick="resetAll()">Reset everything</button>
+    </div>
+    <input type="file" id="impFile" class="hidden" accept="application/json" onchange="importData(event)">`;
+  v.innerHTML=html;
+  drawWheel();
+}
+function setBudget(v){ DB.settings.monthlyCredits=Math.max(0,parseInt(v)||200); save(); refreshHeader(); }
+function setBrand(v){ DB.settings.brandName=v||"Gina's Boutique"; save(); refreshHeader(); }
+function resetMonth(){ if(DB.user){DB.user.creditsUsed=0;save();render();toast('Credits reset 💳');} }
+function addGift(){ const n=el('giftAdd').value.trim(); if(n){DB.giftIdeas.push({id:uid(),name:n});save();render();} }
+function rmGift(id){ DB.giftIdeas=DB.giftIdeas.filter(g=>g.id!==id); save(); render(); }
+function spinGift(){
+  if(spinning) return;
+  if(!DB.giftIdeas.length){ el('giftResult').innerHTML='<div class="spin-result"><p>Add some gift ideas first.</p></div>'; return; }
+  spinning=true;
+  const pick=DB.giftIdeas[Math.floor(Math.random()*DB.giftIdeas.length)].name;
+  const target=wheelAngle+Math.PI*2*6+Math.random()*Math.PI*2, start=wheelAngle, t0=performance.now(),dur=2600;
+  function frame(t){ const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3); wheelAngle=start+(target-start)*e; drawWheel();
+    if(p<1) requestAnimationFrame(frame);
+    else{ spinning=false; el('giftResult').innerHTML=`<div class="spin-result"><p style="color:var(--ink-soft);font-size:13px;margin:0">Get her...</p><h3>${pick}</h3><button class="btn small" style="margin-top:10px" onclick="spinGift()">Spin again 🔄</button></div>`; confetti(); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* admin item CRUD */
+function adminAddItem(cat){
+  const name=el('newItemName').value.trim(); if(!name)return;
+  const cost=parseInt(el('newItemCost').value)||0;
+  DB.cats[cat].unshift({id:uid(),name,sub:subFilter!=='All'?subFilter:'',price:cost>0?'$':'Free',cost,fav:false,note:''});
+  save(); render();
+}
+function adminDelItem(cat,id){ if(confirm('Delete this item?')){ DB.cats[cat]=DB.cats[cat].filter(i=>i.id!==id); save(); render(); } }
+function adminEditItem(cat,id){
+  const it=findItem(cat,id);
+  const html=`<div class="modal-wrap" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <h2>Edit item</h2>
+    <div class="field"><label>Name</label><input id="eName" value="${esc(it.name)}"></div>
+    <div class="field"><label>Sub-category</label><input id="eSub" value="${esc(it.sub||'')}"></div>
+    <div class="field"><label>Price label ($ / $$ / $$$ / Free)</label><input id="ePrice" value="${esc(it.price||'')}"></div>
+    <div class="field"><label>Cost in credits</label><input id="eCost" type="number" value="${it.cost||0}"></div>
+    <div class="field"><label>Note</label><textarea id="eNote">${esc(it.note||'')}</textarea></div>
+    <div class="field"><label><input type="checkbox" id="eFav" ${it.fav?'checked':''}> ⭐ Favorite</label></div>
+    <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn" onclick="saveEdit('${cat}','${id}')">Save</button></div>
+  </div></div>`;
+  el('modalRoot').innerHTML=html;
+}
+function saveEdit(cat,id){
+  const it=findItem(cat,id);
+  it.name=el('eName').value.trim()||it.name;
+  it.sub=el('eSub').value.trim();
+  it.price=el('ePrice').value.trim();
+  it.cost=parseInt(el('eCost').value)||0;
+  it.note=el('eNote').value.trim();
+  it.fav=el('eFav').checked;
+  save(); closeModal(); render();
+}
+
+/* data export/import/reset */
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gina-boutique-backup.json'; a.click();
+}
+function importData(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader(); r.onload=()=>{ try{ DB=JSON.parse(r.result); save(); toast('Imported ✓'); render(); renderTabs(); }catch(err){ alert('Bad file'); } }; r.readAsText(f);
+}
+function resetAll(){ if(confirm('Wipe everything and reload defaults? This deletes Gina\'s points and history too.')){ DB=seed(); save(); toast('Reset done'); renderTabs(); render(); } }
+
+/* =================================================================
+   SECRET TAB UNLOCK ("🔒 for us" button in menu / brand)
+   We expose a discreet lock button: tap brand area then a small lock.
+   Implemented: the "For Us" reveal lives behind a button in the
+   Self-care/Rewards footer + brand triple-tap fallback.
+   ================================================================= */
+let brandTaps=0,brandTimer=null;
+function brandTap(){
+  brandTaps++;
+  clearTimeout(brandTimer);
+  brandTimer=setTimeout(()=>{brandTaps=0;},800);
+  if(brandTaps>=3){ brandTaps=0; revealSecret(); }
+}
+function revealSecret(){
+  if(SECRET_UNLOCKED){ SECRET_UNLOCKED=false; if(currentTab==='sexy')currentTab='restaurants'; toast('🔒 For Us hidden'); }
+  else{ SECRET_UNLOCKED=true; toast('🔓 "For Us" unlocked'); }
+  renderTabs(); render();
+}
+
+/* =================================================================
+   HELPERS
+   ================================================================= */
+function el(id){ return document.getElementById(id); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function closeModal(){ el('modalRoot').innerHTML=''; }
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; el('toastRoot').appendChild(t); setTimeout(()=>t.remove(),2200); }
+function confetti(){
+  const c=document.createElement('div'); c.className='confetti'; document.body.appendChild(c);
+  const emojis=['💕','✨','🎀','💖','🌸','⭐','💋'];
+  for(let i=0;i<26;i++){
+    const s=document.createElement('div'); s.textContent=emojis[i%emojis.length];
+    s.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-30px;font-size:${14+Math.random()*16}px;transition:transform 1.6s ease-in,opacity 1.6s;`;
+    c.appendChild(s);
+    requestAnimationFrame(()=>{ s.style.transform=`translateY(${window.innerHeight+60}px) rotate(${Math.random()*540}deg)`; s.style.opacity='0'; });
+  }
+  setTimeout(()=>c.remove(),1700);
+}
+
+/* footer secret lock button injection */
+function addSecretButton(){
+  // a discreet lock button fixed bottom-left
+  const b=document.createElement('button');
+  b.id='secretBtn'; b.textContent='🔒';
+  b.title='for us';
+  b.style.cssText='position:fixed;bottom:20px;left:16px;z-index:50;background:rgba(42,34,48,.85);color:#f7c9d6;border-radius:999px;width:42px;height:42px;font-size:16px;box-shadow:var(--shadow);opacity:.55;';
+  b.onclick=revealSecret;
+  document.body.appendChild(b);
+}
+
+/* =================================================================
+   BOOT
+   ================================================================= */
+function prefillGate(){
+  if(DB.user && DB.user.username && DB.user.username!=='admin' && el('liUser')){
+    el('liUser').value=DB.user.username;
+    el('gateSub').textContent='Welcome back 💕 Log in to your loyalty card';
+  }
+}
+async function boot(){
+  load();              // instant local render-readiness
+  addSecretButton();
+  setSync('saving');
+  const remote=await cloudPull();
+  if(remote && remote.data && remote.data.cats){
+    DB=remote.data; lastRemoteUpdated=remote.updated_at; saveLocal(); setSync('synced');
+  }else{
+    // first time on this shared backend — seed the cloud row from local
+    await cloudPush();
+  }
+  prefillGate();
+  startPolling();
+}
+boot();
+</script>
+</body>
+</html>
