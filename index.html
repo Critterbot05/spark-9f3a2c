@@ -290,6 +290,7 @@ function nowMonth(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth(
 function monthKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthLabel(mk){ const p=(mk||'').split('-'); if(p.length<2) return mk||'Earlier'; return new Date(+p[0],+p[1]-1,1).toLocaleString(undefined,{month:'long',year:'numeric'}); }
 function pruneHistory(){ const cut=Date.now()-95*864e5; DB.history=DB.history.filter(h=>!h.ts || h.ts>=cut); }
+function pointsFor(credits){ return Math.round((credits||0)*0.20); }   // loyalty points = 20% of credits spent
 function uid(){ return 'i'+Math.random().toString(36).slice(2,9); }
 
 /* ---- SEED CONTENT ---- */
@@ -870,7 +871,7 @@ function openCart(){
   let items=DB.cart.length? DB.cart.map(c=>`<div class="cart-item"><span class="ci-name">${c.name}</span><span class="ci-cost">${c.cost} cr</span><button class="ci-rm" onclick="rmCart('${c.id}')">×</button></div>`).join('')
     : `<div class="empty">Your cart is empty. Go pick some treats 💕</div>`;
   let warn = over? `<div class="cart-warn">⚠️ This is ${total-left} credits over your ${left} left this month. Maybe save one for later? 🥹</div>`:'';
-  const pts = DB.cart.length*10;
+  const pts = pointsFor(total);
   const html=`<div class="overlay" onclick="if(event.target===this)closeModal()">
     <div class="drawer">
       <button class="linkbtn" style="float:right" onclick="closeModal()">close ✕</button>
@@ -887,7 +888,7 @@ function rmCart(id){ DB.cart=DB.cart.filter(c=>c.id!==id); save(); openCart(); r
 function checkout(){
   if(!DB.cart.length) return;
   const total=DB.cart.reduce((s,c)=>s+c.cost,0);
-  const pts=DB.cart.length*10;
+  const pts=pointsFor(total);
   DB.user.creditsUsed += total;
   DB.user.points += pts;
   DB.history.unshift({date:new Date().toLocaleDateString(),ts:Date.now(),mkey:monthKey(),items:DB.cart.map(c=>c.name),credits:total,points:pts});
@@ -1075,6 +1076,9 @@ function renderRewards(v){
   });
   if(ADMIN){
     html+=`<div class="add-inline"><input id="rwName" placeholder="reward..."><input id="rwPts" type="number" placeholder="pts" style="max-width:90px"><button class="btn small" onclick="addReward()">+ Add</button></div>`;
+    html+=`<div class="section-label">Admin</div>
+      <div class="reward-card"><span class="rc-name">Reset Gina's loyalty points to 0</span>
+      <button class="btn tiny" style="background:#c0455f" onclick="adminResetPoints()">↺ Reset points</button></div>`;
   }
   if(DB.history.length){
     html+=`<div class="section-label">Recent history</div>`;
@@ -1093,6 +1097,13 @@ function redeem(id){
 }
 function addReward(){ const n=el('rwName').value.trim(),p=parseInt(el('rwPts').value)||50; if(n){DB.rewards.push({id:uid(),pts:p,name:n});DB.rewards.sort((a,b)=>a.pts-b.pts);save();render();} }
 function rmReward(id){ DB.rewards=DB.rewards.filter(r=>r.id!==id); save(); render(); }
+function adminResetPoints(){
+  if(!ADMIN) return;
+  const cur=DB.user?DB.user.points:0;
+  if(!confirm(`Reset Gina's loyalty points to 0?\n\nShe currently has ${cur} pts. This can't be undone.`)) return;
+  if(DB.user){ DB.user.points=0; save(); }
+  toast('Loyalty points reset to 0 ↺'); render();
+}
 
 /* =================================================================
    ADMIN LEDGER — month's purchases, last 3 months
