@@ -297,7 +297,7 @@ function uid(){ return 'i'+Math.random().toString(36).slice(2,9); }
 function seed(){
   const R = (name,sub,price,cost,fav,note)=>({id:uid(),name,sub,price,cost,fav:!!fav,note:note||''});
   const _seed = {
-    settings:{ adminPass:ADMIN_PASS, monthlyCredits:MONTHLY_CREDITS, brandName:"Gina's Boutique" },
+    settings:{ adminPass:ADMIN_PASS, monthlyCredits:MONTHLY_CREDITS, brandName:"Gina's Boutique", notifyTopic:'' },
     user:null,            // {username,password,points,creditsUsed,month}
     cart:[],
     history:[],           // {date, items:[{name}], credits, points}
@@ -889,14 +889,28 @@ function checkout(){
   if(!DB.cart.length) return;
   const total=DB.cart.reduce((s,c)=>s+c.cost,0);
   const pts=pointsFor(total);
+  const boughtItems=DB.cart.map(c=>c.name);
   DB.user.creditsUsed += total;
   DB.user.points += pts;
-  DB.history.unshift({date:new Date().toLocaleDateString(),ts:Date.now(),mkey:monthKey(),items:DB.cart.map(c=>c.name),credits:total,points:pts});
+  DB.history.unshift({date:new Date().toLocaleDateString(),ts:Date.now(),mkey:monthKey(),items:boughtItems,credits:total,points:pts});
   pruneHistory();
   DB.cart=[];
   save(); closeModal(); render();
   confetti();
   toast(`Enjoy, babe! +${pts} pts ✨`);
+  notifyPurchase(boughtItems, total);   // push to Josué's phone via ntfy
+}
+function notifyPurchase(items, credits){
+  const topic = DB.settings && DB.settings.notifyTopic;
+  if(!topic) return;
+  const who = (DB.user && DB.user.username && DB.user.username!=='admin') ? DB.user.username : 'Gina';
+  const payload = {
+    topic,
+    title: '🛍️ ' + who + ' just checked out',
+    message: items.join(', ') + '\n' + credits + ' credits · ' + creditsLeft() + ' left this month',
+    tags: ['shopping_bags','sparkling_heart']
+  };
+  fetch('https://ntfy.sh/', { method:'POST', body:JSON.stringify(payload) }).catch(()=>{});
 }
 
 /* =================================================================
@@ -1188,6 +1202,13 @@ function renderAdmin(v){
     <div class="reward-card"><span class="rc-name">Gina's credits used this month</span>
       <button class="btn tiny" onclick="resetMonth()">Reset to 0</button></div>`;
 
+  // notifications (ntfy)
+  html+=`<div class="section-label">🔔 Purchase notifications (ntfy)</div>
+    <p style="color:var(--ink-soft);font-size:13px;margin:4px;">Install the free <b>ntfy</b> app on your phone and subscribe to the exact topic below. You'll get a push every time Gina checks out. Leave blank to turn off.</p>
+    <div class="reward-card"><span class="rc-name">Topic</span>
+      <input value="${esc(DB.settings.notifyTopic||'')}" placeholder="(off)" onchange="setNotifyTopic(this.value)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--beige)">
+      <button class="btn tiny" onclick="testNotify()">Send test</button></div>`;
+
   // quick edit hint
   html+=`<div class="section-label">✏️ Edit items</div>
     <p style="color:var(--ink-soft);font-size:13px;margin:4px;">Open any category tab while in admin to add / edit / delete its items. Same for Watchlist, Rewards, Spinner and the For Us tab.</p>`;
@@ -1206,6 +1227,14 @@ function renderAdmin(v){
 function setBudget(v){ DB.settings.monthlyCredits=Math.max(0,parseInt(v)||200); save(); refreshHeader(); }
 function setBrand(v){ DB.settings.brandName=v||"Gina's Boutique"; save(); refreshHeader(); }
 function resetMonth(){ if(DB.user){DB.user.creditsUsed=0;save();render();toast('Credits reset 💳');} }
+function setNotifyTopic(v){ DB.settings.notifyTopic=(v||'').trim(); save(); toast(DB.settings.notifyTopic?'Notifications on 🔔':'Notifications off'); }
+function testNotify(){
+  const topic=DB.settings.notifyTopic;
+  if(!topic){ toast('Enter a topic first'); return; }
+  fetch('https://ntfy.sh/',{method:'POST',body:JSON.stringify({topic,title:'🔔 Test from Gina\'s Boutique',message:'If you see this on your phone, notifications work! 💕',tags:['white_check_mark']})})
+    .then(r=>{ toast(r.ok?'Test sent — check your phone 📲':'Send failed'); })
+    .catch(()=>toast('Send failed (offline?)'));
+}
 function addGift(){ const n=el('giftAdd').value.trim(); if(n){DB.giftIdeas.push({id:uid(),name:n});save();render();} }
 function rmGift(id){ DB.giftIdeas=DB.giftIdeas.filter(g=>g.id!==id); save(); render(); }
 function spinGift(){
