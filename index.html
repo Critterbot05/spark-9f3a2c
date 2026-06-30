@@ -297,7 +297,7 @@ function uid(){ return 'i'+Math.random().toString(36).slice(2,9); }
 function seed(){
   const R = (name,sub,price,cost,fav,note)=>({id:uid(),name,sub,price,cost,fav:!!fav,note:note||''});
   const _seed = {
-    settings:{ adminPass:ADMIN_PASS, monthlyCredits:MONTHLY_CREDITS, brandName:"Gina's Boutique", notifyTopic:'' },
+    settings:{ adminPass:ADMIN_PASS, monthlyCredits:MONTHLY_CREDITS, brandName:"Gina's Boutique", notifyTopic:'', lowThreshold:40 },
     user:null,            // {username,password,points,creditsUsed,month}
     cart:[],
     history:[],           // {date, items:[{name}], credits, points}
@@ -899,6 +899,20 @@ function checkout(){
   confetti();
   toast(`Enjoy, babe! +${pts} pts ✨`);
   notifyPurchase(boughtItems, total);   // push to Josué's phone via ntfy
+  // low-credit alert — fire once, only when this purchase crosses the threshold
+  const thr = DB.settings.lowThreshold || 40;
+  const leftBefore = DB.settings.monthlyCredits - (DB.user.creditsUsed - total);
+  const leftAfter = creditsLeft();
+  if(leftAfter <= thr && leftBefore > thr) notifyLow(leftAfter);
+}
+function notifyLow(left){
+  const topic = DB.settings && DB.settings.notifyTopic;
+  if(!topic) return;
+  fetch('https://ntfy.sh/', { method:'POST', body:JSON.stringify({
+    topic, title:'⚠️ Gina is running low on credits',
+    message:'Only '+left+' credits left this month 💸',
+    tags:['warning'], priority:4
+  })}).catch(()=>{});
 }
 function notifyPurchase(items, credits){
   const topic = DB.settings && DB.settings.notifyTopic;
@@ -1114,9 +1128,22 @@ function rmReward(id){ DB.rewards=DB.rewards.filter(r=>r.id!==id); save(); rende
 function adminResetPoints(){
   if(!ADMIN) return;
   const cur=DB.user?DB.user.points:0;
-  if(!confirm(`Reset Gina's loyalty points to 0?\n\nShe currently has ${cur} pts. This can't be undone.`)) return;
-  if(DB.user){ DB.user.points=0; save(); }
-  toast('Loyalty points reset to 0 ↺'); render();
+  confirmModal('Reset points?',
+    `Gina currently has <b>${cur} pts</b>. This resets her loyalty points to <b>0</b> and can't be undone. (Her credits, purchases and rewards list are not affected.)`,
+    ()=>{ if(DB.user){ DB.user.points=0; save(); } toast('Loyalty points reset to 0 ↺'); render(); },
+    '↺ Reset to 0');
+}
+/* In-app confirm dialog (native confirm() is unreliable in iOS home-screen apps) */
+function confirmModal(title, message, onYes, yesLabel){
+  const html=`<div class="modal-wrap" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <h2>${title}</h2>
+    <p style="color:var(--ink-soft);font-size:14px;line-height:1.5">${message}</p>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" style="background:#c0455f" id="cfYes">${yesLabel||'Confirm'}</button>
+    </div></div></div>`;
+  el('modalRoot').innerHTML=html;
+  el('cfYes').onclick=()=>{ closeModal(); onYes(); };
 }
 
 /* =================================================================
@@ -1200,7 +1227,11 @@ function renderAdmin(v){
     <div class="reward-card"><span class="rc-name">Boutique name</span>
       <input value="${esc(DB.settings.brandName)}" onchange="setBrand(this.value)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--beige)"></div>
     <div class="reward-card"><span class="rc-name">Gina's credits used this month</span>
-      <button class="btn tiny" onclick="resetMonth()">Reset to 0</button></div>`;
+      <button class="btn tiny" onclick="resetMonth()">Reset to 0</button></div>
+    <div class="reward-card"><span class="rc-name">Gina's loyalty points (${DB.user?DB.user.points:0})</span>
+      <button class="btn tiny" style="background:#c0455f" onclick="adminResetPoints()">↺ Reset points</button></div>
+    <div class="reward-card"><span class="rc-name">Low-credit alert when ≤</span>
+      <input type="number" value="${DB.settings.lowThreshold||40}" onchange="setLowThreshold(this.value)" style="max-width:90px;padding:8px;border-radius:10px;border:1.5px solid var(--beige)"><span style="color:var(--ink-soft);font-size:13px">credits left</span></div>`;
 
   // notifications (ntfy)
   html+=`<div class="section-label">🔔 Purchase notifications (ntfy)</div>
@@ -1228,6 +1259,7 @@ function setBudget(v){ DB.settings.monthlyCredits=Math.max(0,parseInt(v)||200); 
 function setBrand(v){ DB.settings.brandName=v||"Gina's Boutique"; save(); refreshHeader(); }
 function resetMonth(){ if(DB.user){DB.user.creditsUsed=0;save();render();toast('Credits reset 💳');} }
 function setNotifyTopic(v){ DB.settings.notifyTopic=(v||'').trim(); save(); toast(DB.settings.notifyTopic?'Notifications on 🔔':'Notifications off'); }
+function setLowThreshold(v){ DB.settings.lowThreshold=Math.max(0,parseInt(v)||0); save(); toast('Low-credit alert set'); }
 function testNotify(){
   const topic=DB.settings.notifyTopic;
   if(!topic){ toast('Enter a topic first'); return; }
