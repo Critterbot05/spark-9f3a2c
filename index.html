@@ -284,14 +284,18 @@ let lastRemoteUpdated = null;   // updated_at we last applied/pushed
 let lastLocalWrite = 0;         // ts of last local change (don't clobber active edits)
 let pushTimer = null;
 let syncOn = true;
+let cloudLoaded = false;        // true once we've successfully read the shared cloud row at least once
 
 function nowMonth(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
+function monthKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabel(mk){ const p=(mk||'').split('-'); if(p.length<2) return mk||'Earlier'; return new Date(+p[0],+p[1]-1,1).toLocaleString(undefined,{month:'long',year:'numeric'}); }
+function pruneHistory(){ const cut=Date.now()-95*864e5; DB.history=DB.history.filter(h=>!h.ts || h.ts>=cut); }
 function uid(){ return 'i'+Math.random().toString(36).slice(2,9); }
 
 /* ---- SEED CONTENT ---- */
 function seed(){
   const R = (name,sub,price,cost,fav,note)=>({id:uid(),name,sub,price,cost,fav:!!fav,note:note||''});
-  return {
+  const _seed = {
     settings:{ adminPass:ADMIN_PASS, monthlyCredits:MONTHLY_CREDITS, brandName:"Gina's Boutique" },
     user:null,            // {username,password,points,creditsUsed,month}
     cart:[],
@@ -558,8 +562,41 @@ function seed(){
       sexy:[]   // intentionally empty in source — the real "For Us" content lives only in the cloud row, not in this public file
     }
   };
+  repriceCats(_seed.cats);
+  return _seed;
 }
 function sx(name,spice){ return {id:uid(),name,spice,note:'',price:'',cost:0}; }
+
+/* Central pricing rules — credits are an "indulgence budget" (200/month ≈ 3-4 nicer
+   outings). Floor of 10 on everything so every check-in earns points; matcha & restaurants
+   priced high to ration the real-money stuff. */
+function repriceCats(cats){
+  const lbl = c => c>=70?'$$$' : c>=35?'$$' : '$';
+  const RBASE = {
+    'matcha':40, 'sweet treats':20, 'desserts':20, 'brunch':50, 'healthy':45,
+    'nikkei':75, 'asian / japanese':70, 'steakhouse':85, 'seafood':75,
+    'italian':65, 'drinks & rooftops':55, 'late night':35
+  };
+  Object.keys(cats).forEach(k=>{
+    if(k==='sexy') return;                 // spicy items aren't purchased; leave as-is
+    cats[k].forEach(it=>{
+      let c = it.cost||0;
+      if(k==='restaurants'){
+        const sub=(it.sub||'').toLowerCase();
+        let base=null;
+        for(const key in RBASE){ if(sub.indexOf(key)>-1){ base=RBASE[key]; break; } }
+        c = (base!=null) ? base : Math.max(40,c);
+        if(/calle dragones/i.test(it.name)) c=75;
+        if(/rey de la empanada/i.test(it.name)) c=15;
+      }else{
+        c = Math.max(10, c);               // cheap dates stay cheap, but never free
+      }
+      c = Math.max(10, c);
+      it.cost = c;
+      it.price = lbl(c);
+    });
+  });
+}
 
 /* =================================================================
    STATE / PERSISTENCE
@@ -580,7 +617,9 @@ function setSync(state){
 }
 function schedulePush(){ if(!syncOn) return; clearTimeout(pushTimer); setSync('saving'); pushTimer=setTimeout(cloudPush,700); }
 async function cloudPush(){
-  if(!syncOn) return;
+  // SAFETY: never overwrite the shared cloud until we've successfully read it once.
+  // This prevents a transient pull failure from clobbering the real data with a fresh seed.
+  if(!syncOn || !cloudLoaded) return;
   const updated=new Date().toISOString();
   try{
     const res=await fetch(SUPA_URL+'/rest/v1/app_state?on_conflict=id',{
@@ -592,15 +631,17 @@ async function cloudPush(){
     else setSync('error');
   }catch(e){ setSync('offline'); }
 }
+// Returns {status:'ok',row} | {status:'empty'} | {status:'error'} | {status:'off'}
 async function cloudPull(){
-  if(!syncOn) return null;
+  if(!syncOn) return {status:'off'};
   try{
     const res=await fetch(SUPA_URL+'/rest/v1/app_state?id=eq.'+ROW_ID+'&select=data,updated_at',{headers:SUPA_HEADERS});
-    if(!res.ok) return null;
+    if(!res.ok) return {status:'error'};
     const rows=await res.json();
-    return rows.length?rows[0]:null;
-  }catch(e){ return null; }
+    return rows.length ? {status:'ok',row:rows[0]} : {status:'empty'};
+  }catch(e){ return {status:'error'}; }
 }
+async function seedCloud(){ cloudLoaded=true; await cloudPush(); }
 function applyRemote(row){
   if(!row||!row.data||!row.data.cats) return false;
   if(row.updated_at===lastRemoteUpdated) return false;
@@ -615,10 +656,15 @@ function startPolling(){
     if(el('modalRoot') && el('modalRoot').children.length) return;
     const ae=document.activeElement;
     if(ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA')) return;
-    const row=await cloudPull();
-    if(applyRemote(row)){
-      if(!el('app').classList.contains('hidden')){ ensureMonth(); renderTabs(); render(); }
-      else prefillGate();
+    const res=await cloudPull();
+    if(res.status==='ok'){
+      cloudLoaded=true;
+      if(applyRemote(res.row)){
+        if(!el('app').classList.contains('hidden')){ ensureMonth(); renderTabs(); render(); }
+        else prefillGate();
+      }
+    } else if(res.status==='empty' && !cloudLoaded){
+      seedCloud();   // row genuinely missing → safe to create it
     }
   },4000);
 }
@@ -705,6 +751,11 @@ function renderTabs(){
     t.appendChild(s);
   }
   if(ADMIN){
+    const l=document.createElement('button');
+    l.className='tab admin'+(currentTab==='ledger'?' active':'');
+    l.textContent='📒 Purchases';
+    l.onclick=()=>{currentTab='ledger';renderTabs();render();window.scrollTo(0,0);};
+    t.appendChild(l);
     const a=document.createElement('button');
     a.className='tab admin'+(currentTab==='admin'?' active':'');
     a.textContent='🔧 Admin';
@@ -748,6 +799,7 @@ function render(){
   if(currentTab==='visited') return renderVisited(v);
   if(currentTab==='rewards') return renderRewards(v);
   if(currentTab==='sexy') return renderSexy(v);
+  if(currentTab==='ledger') return renderLedger(v);
   if(currentTab==='admin') return renderAdmin(v);
   return renderCategory(v,currentTab);
 }
@@ -838,7 +890,8 @@ function checkout(){
   const pts=DB.cart.length*10;
   DB.user.creditsUsed += total;
   DB.user.points += pts;
-  DB.history.unshift({date:new Date().toLocaleDateString(),items:DB.cart.map(c=>c.name),credits:total,points:pts});
+  DB.history.unshift({date:new Date().toLocaleDateString(),ts:Date.now(),mkey:monthKey(),items:DB.cart.map(c=>c.name),credits:total,points:pts});
+  pruneHistory();
   DB.cart=[];
   save(); closeModal(); render();
   confetti();
@@ -1042,6 +1095,35 @@ function addReward(){ const n=el('rwName').value.trim(),p=parseInt(el('rwPts').v
 function rmReward(id){ DB.rewards=DB.rewards.filter(r=>r.id!==id); save(); render(); }
 
 /* =================================================================
+   ADMIN LEDGER — month's purchases, last 3 months
+   ================================================================= */
+function renderLedger(v){
+  pruneHistory();
+  let html=`<div class="view-head"><h2>Purchases 📒</h2><p>What Gina has "bought" — grouped by month, last 3 months kept.</p></div>`;
+  if(!DB.history.length){ html+=`<div class="empty">No purchases yet this month.</div>`; v.innerHTML=html; return; }
+  // group by month key
+  const groups={};
+  DB.history.forEach(h=>{ const mk=h.mkey || (h.ts?monthKey(new Date(h.ts)):'Earlier'); (groups[mk]=groups[mk]||[]).push(h); });
+  const keys=Object.keys(groups).sort().reverse().slice(0,3);
+  const thisMk=monthKey();
+  keys.forEach(mk=>{
+    const rows=groups[mk];
+    const credits=rows.reduce((s,h)=>s+(h.credits||0),0);
+    const pts=rows.reduce((s,h)=>s+(h.points||0),0);
+    const count=rows.reduce((s,h)=>s+(h.items?h.items.length:0),0);
+    html+=`<div class="section-label">${monthLabel(mk)} ${mk===thisMk?'· current':''}</div>`;
+    html+=`<div class="reward-card" style="background:linear-gradient(120deg,var(--matcha),var(--matcha-deep));color:#23391a">
+      <span class="rc-name" style="font-weight:700">${count} item${count!==1?'s':''} · ${rows.length} checkout${rows.length!==1?'s':''}</span>
+      <span class="rc-pts" style="background:#fff">${credits} cr</span>
+      <span class="rc-pts" style="background:var(--butter)">+${pts} pts</span></div>`;
+    rows.forEach(h=>{
+      html+=`<div class="reward-card"><span class="rc-pts">${h.date}</span><span class="rc-name">${h.items.join(', ')}</span><span style="color:var(--matcha-deep);font-weight:700">${h.credits} cr</span></div>`;
+    });
+  });
+  v.innerHTML=html;
+}
+
+/* =================================================================
    SEXY
    ================================================================= */
 function renderSexy(v){
@@ -1234,12 +1316,17 @@ async function boot(){
   load();              // instant local render-readiness
   addSecretButton();
   setSync('saving');
-  const remote=await cloudPull();
-  if(remote && remote.data && remote.data.cats){
-    DB=remote.data; lastRemoteUpdated=remote.updated_at; saveLocal(); setSync('synced');
+  const res=await cloudPull();
+  if(res.status==='ok' && res.row.data && res.row.data.cats){
+    cloudLoaded=true;
+    DB=res.row.data; lastRemoteUpdated=res.row.updated_at; saveLocal(); setSync('synced');
+  }else if(res.status==='empty'){
+    // row genuinely doesn't exist yet → safe to seed the shared cloud from local
+    await seedCloud();
   }else{
-    // first time on this shared backend — seed the cloud row from local
-    await cloudPush();
+    // pull failed (offline / transient) → keep local, DO NOT push (would clobber the shared row).
+    // Polling will keep retrying and load the cloud as soon as it's reachable.
+    setSync('offline');
   }
   prefillGate();
   startPolling();
